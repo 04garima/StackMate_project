@@ -4,7 +4,7 @@
   --bg-dark: #111111;
   --bg-card: #19191d;
   --text-main: #ffffff;
-  --text-muted: #9ca3af;
+  --text-muted: #bdbdbd;
   --accent-orange: #FFAB00;
   --accent-hover: #e09600;
   --border-subtle: #2a2a30;
@@ -369,7 +369,26 @@ footer {
   animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
+.tiny {
+  font-size: 0.7rem;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Global Table Overrides for visibility */
+.table {
+  color: #ffffff !important;
+}
+.table-hover tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+.table thead th {
+  color: var(--text-muted) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+.table td {
+  border-color: var(--border-subtle) !important;
 }

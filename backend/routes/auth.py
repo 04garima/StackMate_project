@@ -81,6 +81,10 @@ def login():
         if not UserModel.verify_password(password, user["password"]):
             return jsonify({"error": "Invalid email or password"}), 401
             
+        # Check user status
+        if user.get("status") in ["inactive", "blacklisted"]:
+            return jsonify({"error": "Your account is not yet active or has been blacklisted. Please contact an admin."}), 403
+            
         # Provide token
         token = generate_token(user["_id"])
         

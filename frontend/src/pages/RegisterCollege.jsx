@@ -16,7 +16,12 @@ function RegisterCollege() {
     setSuccess('');
 
     try {
-      await axios.post('http://127.0.0.1:5000/api/college/register', { name, domain, email, password });
+      await axios.post('http://127.0.0.1:5000/api/college/register', { 
+        name: name.trim(), 
+        domain: domain.trim().toLowerCase(), 
+        email: email.trim().toLowerCase(), 
+        password 
+      });
       setSuccess('College request submitted! You can login after an admin reviews and approves it.');
       setName('');
       setDomain('');

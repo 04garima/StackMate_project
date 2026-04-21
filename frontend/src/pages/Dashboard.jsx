@@ -1,10 +1,18 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import SkillSelector from '../components/SkillSelector';
 
 function Dashboard() {
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && user.role === 'admin') navigate('/admin/dashboard', { replace: true });
+    if (user && user.role === 'college') navigate('/college/dashboard', { replace: true });
+  }, [user, navigate]);
+
   const [profile, setProfile] = useState(null);
   const [skillsOfferedInput, setSkillsOfferedInput] = useState('');
   const [skillsWantedInput, setSkillsWantedInput] = useState('');

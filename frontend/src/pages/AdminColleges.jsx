@@ -68,16 +68,16 @@ function AdminColleges() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="form-control"
-          style={{background:'var(--bg-card)', border:'1px solid var(--border-subtle)', color:'#fff', width:'260px'}}
+          style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.15)', color:'#fff', width:'260px'}}
         />
       </div>
 
       <div className="rounded-3 overflow-hidden" style={{border:'1px solid var(--border-subtle)'}}>
-        <table className="table mb-0" style={{background:'var(--bg-card)', color:'var(--text-main)'}}>
+        <table className="table mb-0" style={{background:'var(--bg-card)'}}>
           <thead style={{background:'#0d0d10', borderBottom:'1px solid var(--border-subtle)'}}>
             <tr>
               {['Name','Domain','Status','Actions'].map(h => (
-                <th key={h} className="py-3 px-4 fw-semibold text-uppercase" style={{color:'var(--text-muted)', fontSize:'0.75rem', letterSpacing:'0.08em', border:'none'}}>{h}</th>
+                <th key={h} className="py-3 px-4 fw-semibold text-uppercase" style={{fontSize:'0.75rem', letterSpacing:'0.08em', border:'none'}}>{h}</th>
               ))}
             </tr>
           </thead>

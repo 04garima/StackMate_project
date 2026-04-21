@@ -10,7 +10,7 @@ class CollegeModel:
 
     @staticmethod
     def find_by_domain(domain):
-        return CollegeModel.get_collection().find_one({"domain": domain})
+        return CollegeModel.get_collection().find_one({"domain": domain.lower() if domain else None})
 
     @staticmethod
     def find_all():
@@ -20,7 +20,7 @@ class CollegeModel:
     def create(name, domain, admin_email, status="pending"):
         new_college = {
             "name": name,
-            "domain": domain,
+            "domain": domain.lower() if domain else None,
             "admin_email": admin_email,
             "status": status,
             "createdAt": datetime.datetime.utcnow()

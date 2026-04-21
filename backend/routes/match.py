@@ -99,7 +99,30 @@ def send_match_request(current_user):
     if existing:
         return jsonify({"message": "Request already exists"}), 200
         
-    MatchModel.create(current_user["_id"], target_user_id, [])
+    db = get_db()
+    target_user = db.users.find_one({"_id": ObjectId(target_user_id)})
+    if not target_user:
+        return jsonify({"error": "Target user not found"}), 404
+
+    def normalize_skills(skill_list):
+        normalized = set()
+        for s in skill_list:
+            if isinstance(s, str):
+                parts = s.split(',')
+                for p in parts:
+                    clean = p.strip().lower()
+                    if clean:
+                        normalized.add(clean)
+        return normalized
+
+    my_offered = normalize_skills(current_user.get("skillsOffered", []))
+    my_wanted = normalize_skills(current_user.get("skillsWanted", []))
+    their_offered = normalize_skills(target_user.get("skillsOffered", []))
+    their_wanted = normalize_skills(target_user.get("skillsWanted", []))
+
+    skills_matched = list(my_offered.intersection(their_wanted).union(my_wanted.intersection(their_offered)))
+
+    MatchModel.create(current_user["_id"], target_user_id, skills_matched)
     return jsonify({"message": "Match request sent"}), 201
 
 @match_bp.route('/connections', methods=['GET'])

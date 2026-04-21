@@ -80,8 +80,8 @@ def update_college_status(current_user, college_id):
         data = request.json
         status = data.get("status")
         
-        if status not in ["approved", "rejected"]:
-            return jsonify({"error": "Invalid status. Use 'approved' or 'rejected'."}), 400
+        if status not in ["approved", "rejected", "blacklisted"]:
+            return jsonify({"error": "Invalid status. Use 'approved', 'rejected', or 'blacklisted'."}), 400
             
         success = CollegeModel.update_status(college_id, status)
         if success:

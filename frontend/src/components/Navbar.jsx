@@ -20,11 +20,17 @@ function Navbar() {
         <Link to="/" className={isActive('/')}>Home</Link>
         <Link to="/about" className={isActive('/about')}>About</Link>
         <Link to="/contact" className={isActive('/contact')}>Contact</Link>
-        {user && (
+        {user && user.role === 'student' && (
           <>
             <Link to="/dashboard" className={isActive('/dashboard')}>Dashboard</Link>
             <Link to="/matches" className={isActive('/matches')}>Matches</Link>
           </>
+        )}
+        {user && user.role === 'college' && (
+          <Link to="/college/dashboard" className={isActive('/college/dashboard')}>Dashboard</Link>
+        )}
+        {user && user.role === 'admin' && (
+          <Link to="/admin/dashboard" className={isActive('/admin/dashboard')}>Dashboard</Link>
         )}
       </div>
 
