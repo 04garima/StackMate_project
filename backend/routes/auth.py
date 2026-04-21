@@ -30,16 +30,18 @@ def signup():
             return jsonify({"error": "Email is already registered"}), 400
             
         # Optional: College email check (just extracting for now)
+        college_id = None
         if "@" in email:
             domain = email.split("@")[1]
             from models.College import CollegeModel
             college = CollegeModel.find_by_domain(domain)
             if not college or college.get("status") != "approved":
                 return jsonify({"error": f"College domain '{domain}' is not registered or not yet approved by an admin."}), 400
+            college_id = str(college["_id"])
         else:
             return jsonify({"error": "Invalid email format"}), 400
         # Create user
-        new_user = UserModel.create(name=name, email=email, password=password)
+        new_user = UserModel.create(name=name, email=email, password=password, college_id=college_id)
         
         # Generate token
         token = generate_token(new_user["_id"])

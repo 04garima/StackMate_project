@@ -88,7 +88,9 @@ function AdminColleges() {
               <tr key={college.id} style={{borderBottom:'1px solid var(--border-subtle)', transition:'background 0.2s'}}
                 onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.02)'}
                 onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                <td className="py-3 px-4 fw-medium" style={{color:'var(--text-main)', border:'none'}}>{college.name}</td>
+                <td className="py-3 px-4 fw-bold" style={{color:'#ffffff', border:'none', fontSize: '0.95rem'}}>
+                  {college.name || <span className="text-muted italic">Unnamed College</span>}
+                </td>
                 <td className="py-3 px-4" style={{color:'var(--accent-orange)', border:'none'}}>{college.domain}</td>
                 <td className="py-3 px-4" style={{border:'none'}}>{statusBadge(college.status)}</td>
                 <td className="py-3 px-4" style={{border:'none'}}>

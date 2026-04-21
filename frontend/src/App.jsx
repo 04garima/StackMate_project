@@ -17,6 +17,7 @@ import AdminColleges from './pages/AdminColleges';
 import CollegeDashboard from './pages/CollegeDashboard';
 import CollegeStudents from './pages/CollegeStudents';
 import RegisterCollege from './pages/RegisterCollege';
+import Connections from './pages/Connections';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 
@@ -57,6 +58,7 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
           <Route path="/matches" element={<ProtectedRoute><DashboardLayout><Matches /></DashboardLayout></ProtectedRoute>} />
           <Route path="/chat" element={<ProtectedRoute><DashboardLayout><Chat /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/connections" element={<ProtectedRoute><DashboardLayout><Connections /></DashboardLayout></ProtectedRoute>} />
           <Route path="/admin/dashboard" element={<ProtectedRoute><DashboardLayout><AdminDashboard /></DashboardLayout></ProtectedRoute>} />
           <Route path="/admin/colleges" element={<ProtectedRoute><DashboardLayout><AdminColleges /></DashboardLayout></ProtectedRoute>} />
           <Route path="/college/dashboard" element={<ProtectedRoute><DashboardLayout><CollegeDashboard /></DashboardLayout></ProtectedRoute>} />

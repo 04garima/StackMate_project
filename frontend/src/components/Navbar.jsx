@@ -32,7 +32,7 @@ function Navbar() {
         {user ? (
           <>
             <span style={{color: 'var(--text-muted)', fontSize: '0.9rem', marginRight: '1rem'}}>
-              Hey, <strong style={{color: '#fff'}}>{user.name.split(' ')[0]}</strong>
+              Hey, <strong style={{color: '#fff'}}>{user?.name?.split(' ')[0] || 'User'}</strong>
             </span>
             <button onClick={logout} className="btn-login" style={{cursor: 'pointer', background: 'transparent'}}>Logout</button>
           </>

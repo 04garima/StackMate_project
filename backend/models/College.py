@@ -17,10 +17,11 @@ class CollegeModel:
         return list(CollegeModel.get_collection().find())
 
     @staticmethod
-    def create(name, domain, status="pending"):
+    def create(name, domain, admin_email, status="pending"):
         new_college = {
             "name": name,
             "domain": domain,
+            "admin_email": admin_email,
             "status": status,
             "createdAt": datetime.datetime.utcnow()
         }
