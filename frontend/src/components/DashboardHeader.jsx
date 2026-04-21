@@ -124,7 +124,7 @@ function DashboardHeader() {
                 )}
                 {user?.role !== 'admin' && (
                   <button 
-                    onClick={() => { setDropdownOpen(false); navigate('/contact'); }}
+                    onClick={() => { setDropdownOpen(false); window.location.href = 'mailto:support@stackmate.com'; }}
                     className="btn w-100 text-start px-3 py-2 d-flex align-items-center gap-2 border-0 rounded-0"
                     style={{color: '#d1d5db', backgroundColor: 'transparent'}}
                     onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'; }}
