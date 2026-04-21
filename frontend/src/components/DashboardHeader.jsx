@@ -5,9 +5,7 @@ import { useNavigate } from 'react-router-dom';
 function DashboardHeader() {
   const { user, logout } = useContext(AuthContext);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const notifRef = useRef(null);
   const navigate = useNavigate();
 
   // Close dropdowns when clicking outside
@@ -15,9 +13,6 @@ function DashboardHeader() {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
-      }
-      if (notifRef.current && !notifRef.current.contains(event.target)) {
-        setNotifOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -36,46 +31,6 @@ function DashboardHeader() {
       </div>
 
       <div className="d-flex align-items-center gap-4">
-        {/* Notifications */}
-        <div className="position-relative" ref={notifRef}>
-          <button 
-            onClick={() => setNotifOpen(!notifOpen)}
-            className="btn p-0 text-secondary position-relative border-0 shadow-none" 
-            style={{background: 'transparent'}}
-            onMouseEnter={(e) => e.currentTarget.classList.replace('text-secondary', 'text-white')}
-            onMouseLeave={(e) => { if(!notifOpen) e.currentTarget.classList.replace('text-white', 'text-secondary'); }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{width: '24px', height: '24px'}}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            <span className="position-absolute top-0 end-0 rounded-circle" style={{width: '8px', height: '8px', backgroundColor: 'var(--accent-orange)', border: '1px solid #111'}}></span>
-          </button>
-
-          {notifOpen && (
-            <div className="position-absolute end-0 mt-3 rounded-3 shadow-lg py-2 z-3 animate-fade-in" style={{width: '20rem', backgroundColor: '#19191d', border: '1px solid #2a2a30'}}>
-              <div className="px-3 py-2 border-bottom border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
-                <span className="fw-bold text-white fs-6">Notifications</span>
-                <span className="badge rounded-pill bg-primary" style={{fontSize: '0.7rem'}}>2 New</span>
-              </div>
-              <div className="py-1 max-vh-50 overflow-auto">
-                <div className="px-3 py-3 border-bottom border-secondary border-opacity-10 hover-bg-subtle" style={{cursor: 'pointer'}}>
-                  <p className="mb-1 text-white fw-medium" style={{fontSize: '0.85rem'}}>New Match Found!</p>
-                  <p className="mb-0 text-secondary" style={{fontSize: '0.75rem'}}>Someone in your college wants to learn Python.</p>
-                  <span className="text-muted mt-1 d-block" style={{fontSize: '0.65rem'}}>2 hours ago</span>
-                </div>
-                <div className="px-3 py-3 border-bottom border-secondary border-opacity-10 hover-bg-subtle" style={{cursor: 'pointer'}}>
-                  <p className="mb-1 text-white fw-medium" style={{fontSize: '0.85rem'}}>Profile Verified</p>
-                  <p className="mb-0 text-secondary" style={{fontSize: '0.75rem'}}>Your college has verified your student status.</p>
-                  <span className="text-muted mt-1 d-block" style={{fontSize: '0.65rem'}}>Yesterday</span>
-                </div>
-              </div>
-              <div className="px-3 py-2 text-center">
-                <button className="btn btn-link btn-sm text-secondary text-decoration-none" style={{fontSize: '0.75rem'}}>View all notifications</button>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* User Dropdown */}
         <div className="position-relative" ref={dropdownRef}>
           <button 
