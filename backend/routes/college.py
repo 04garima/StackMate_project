@@ -12,17 +12,33 @@ def register_college():
         data = request.json
         name = data.get("name")
         domain = data.get("domain")
+        email = data.get("email")
+        password = data.get("password")
         
-        if not name or not domain:
-            return jsonify({"error": "College name and domain are required"}), 400
+        if not name or not domain or not email or not password:
+            return jsonify({"error": "All fields (name, domain, email, password) are required"}), 400
             
         if CollegeModel.find_by_domain(domain):
             return jsonify({"error": "College domain is already registered or pending"}), 400
             
-        new_college = CollegeModel.create(name=name, domain=domain, status="pending")
+        from models.User import UserModel
+        if UserModel.find_by_email(email):
+            return jsonify({"error": "Email is already registered"}), 400
+
+        new_college = CollegeModel.create(name=name, domain=domain, admin_email=email, status="pending")
+        
+        # Create college user account (inactive until college is approved)
+        UserModel.create(
+            name=f"{name} Admin",
+            email=email,
+            password=password,
+            role="college",
+            college_id=str(new_college["_id"]),
+            status="inactive"
+        )
         
         return jsonify({
-            "message": "College registration submitted and is pending approval",
+            "message": "College registration submitted. You can login after admin approval.",
             "college": {
                 "id": str(new_college["_id"]),
                 "name": new_college["name"],
@@ -64,11 +80,20 @@ def update_college_status(current_user, college_id):
         data = request.json
         status = data.get("status")
         
-        if status not in ["approved", "rejected"]:
-            return jsonify({"error": "Invalid status. Use 'approved' or 'rejected'."}), 400
+        if status not in ["approved", "rejected", "blacklisted"]:
+            return jsonify({"error": "Invalid status. Use 'approved', 'rejected', or 'blacklisted'."}), 400
             
         success = CollegeModel.update_status(college_id, status)
         if success:
+            # Also update the college admin user status
+            college = CollegeModel.get_collection().find_one({"_id": ObjectId(college_id)})
+            if college and college.get("admin_email"):
+                db = get_db()
+                user_status = "active" if status == "approved" else "inactive"
+                db.users.update_one(
+                    {"email": college["admin_email"], "role": "college"},
+                    {"$set": {"status": user_status}}
+                )
             return jsonify({"message": f"College status updated to {status}"}), 200
         else:
             return jsonify({"error": "College not found or no changes made"}), 404

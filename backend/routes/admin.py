@@ -49,4 +49,24 @@ def update_college_status(current_user, college_id):
         
     db = get_db()
     db.colleges.update_one({"_id": ObjectId(college_id)}, {"$set": {"status": new_status}})
+    
+    # NEW: Also update college admin user status and existing students
+    college = db.colleges.find_one({"_id": ObjectId(college_id)})
+    if college:
+        # 1. Activate/Deactivate College Admin User
+        user_status = "active" if new_status == "approved" else "inactive"
+        if college.get("admin_email"):
+            db.users.update_one(
+                {"email": college["admin_email"], "role": "college"},
+                {"$set": {"status": user_status}}
+            )
+        
+        # 2. If approved, link all students with this domain to this college
+        if new_status == "approved":
+            domain = college.get("domain")
+            db.users.update_many(
+                {"email": {"$regex": f"@{domain}$"}, "role": "student", "college_id": None},
+                {"$set": {"college_id": str(college["_id"])}}
+            )
+
     return jsonify({"message": f"Status updated to {new_status}"}), 200

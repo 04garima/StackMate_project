@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 function RegisterCollege() {
   const [name, setName] = useState('');
   const [domain, setDomain] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -14,10 +16,17 @@ function RegisterCollege() {
     setSuccess('');
 
     try {
-      await axios.post('http://127.0.0.1:5000/api/college/register', { name, domain });
-      setSuccess('College request submitted! An admin will review it shortly.');
+      await axios.post('http://127.0.0.1:5000/api/college/register', { 
+        name: name.trim(), 
+        domain: domain.trim().toLowerCase(), 
+        email: email.trim().toLowerCase(), 
+        password 
+      });
+      setSuccess('College request submitted! You can login after an admin reviews and approves it.');
       setName('');
       setDomain('');
+      setEmail('');
+      setPassword('');
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to register college');
     }
@@ -51,6 +60,28 @@ function RegisterCollege() {
               placeholder="e.g. nit.edu" 
               value={domain}
               onChange={(e) => setDomain(e.target.value)}
+              required 
+            />
+          </div>
+          <div className="input-block">
+            <label>Admin Email</label>
+            <input 
+              type="email" 
+              className="input-field" 
+              placeholder="e.g. admin@nit.edu" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required 
+            />
+          </div>
+          <div className="input-block">
+            <label>Admin Password</label>
+            <input 
+              type="password" 
+              className="input-field" 
+              placeholder="Create a password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required 
             />
           </div>

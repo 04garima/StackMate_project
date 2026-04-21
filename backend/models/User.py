@@ -18,7 +18,7 @@ class UserModel:
         return UserModel.get_collection().find_one({"_id": ObjectId(user_id)})
 
     @staticmethod
-    def create(name, email, password, role="student"):
+    def create(name, email, password, role="student", college_id=None, status="active"):
         # Hash the password with bcrypt
         salt = bcrypt.gensalt()
         hashed_pw = bcrypt.hashpw(password.encode('utf-8'), salt)
@@ -28,8 +28,8 @@ class UserModel:
             "email": email,
             "password": hashed_pw.decode('utf-8'), # Store as string
             "role": role,
-            "status": "active", # active, blacklisted
-            "college_id": None, # string representation of college's ObjectId
+            "status": status, # active, inactive, blacklisted
+            "college_id": college_id, # string representation of college's ObjectId
             "skillsOffered": [],
             "skillsWanted": [],
             "bio": "",
