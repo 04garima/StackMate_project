@@ -22,6 +22,7 @@ def home():
 app.register_blueprint(waitlist_bp, url_prefix="/api/waitlist")
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 
+#importing routes
 from routes.profile import profile_bp
 from routes.match import match_bp
 from routes.college import college_bp

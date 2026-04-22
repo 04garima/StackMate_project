@@ -31,7 +31,6 @@ function DashboardHeader() {
       </div>
 
       <div className="d-flex align-items-center gap-4">
-
         {/* User Dropdown */}
         <div className="position-relative" ref={dropdownRef}>
           <button
