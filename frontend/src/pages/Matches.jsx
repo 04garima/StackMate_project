@@ -87,7 +87,8 @@ function Matches() {
         <div className="flex-grow-1" style={{minWidth: '200px'}}>
           <input 
             type="text" 
-            className="form-control text-white border-secondary shadow-none bg-dark" 
+            className="form-control text-white border-secondary shadow-none" 
+            style={{ backgroundColor: '#25252b', border: '1px solid #3f3f46' }}
             placeholder="Search by name, role, or skill..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -95,7 +96,8 @@ function Matches() {
         </div>
         <div style={{minWidth: '150px'}}>
           <select 
-            className="form-select text-white border-secondary shadow-none bg-dark"
+            className="form-select text-white border-secondary shadow-none"
+            style={{ backgroundColor: '#25252b', border: '1px solid #3f3f46' }}
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
           >

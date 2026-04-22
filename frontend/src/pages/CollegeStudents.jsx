@@ -44,7 +44,7 @@ function CollegeStudents() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="form-control"
-          style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.15)', color:'#fff', width:'260px'}}
+          style={{backgroundColor: '#25252b', border: '1px solid #3f3f46', color:'#fff', width:'260px'}}
         />
       </div>
 
