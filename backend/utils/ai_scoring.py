@@ -76,11 +76,21 @@ def calculate_match_score(user1, user2, force_ai=False):
     # Create a unique cache key (sorted to ensure consistency)
     u1_id = str(user1.get("_id", "unknown"))
     u2_id = str(user2.get("_id", "unknown"))
-    cache_key = ":".join(sorted([u1_id, u2_id]))
 
     db = get_db()
     
     # Check DB cache
+    # Generate a skill-aware cache key
+    # This ensures that if either user updates their skills, the cache is invalidated automatically.
+    u1_skills = ",".join(sorted(user1.get("skillsOffered", []) + user1.get("skillsWanted", [])))
+    u2_skills = ",".join(sorted(user2.get("skillsOffered", []) + user2.get("skillsWanted", [])))
+    skill_fingerprint = f"{u1_skills}|{u2_skills}"
+    
+    # Cache key format: user1_user2_hashOfSkills
+    import hashlib
+    skills_hash = hashlib.md5(skill_fingerprint.encode()).hexdigest()[:10]
+    cache_key = f"{u1_id}_{u2_id}_{skills_hash}"
+
     cached_data = db.ai_scores.find_one({"cache_key": cache_key})
     if cached_data:
         # Check if cache is still fresh (valid for 7 days)
@@ -131,15 +141,16 @@ def calculate_match_score(user1, user2, force_ai=False):
         3. Explain the "Aha!" moment—why their skills actually fit.
         4. Focus on the value of the connection, not just a list of words.
         5. Use '\n\n' for spacing.
+        6. IMPORTANT: Return valid JSON only. Do not use raw newlines inside the JSON values.
         """
         # (Total words: ~50-60)
 
-        # Priority: Exact models found in your diagnostic list
+        # Priority: User confirmed 'flash-latest' works best
         models_to_try = [
+            'gemini-flash-latest',
             'gemini-2.5-flash', 
             'gemini-2.0-flash', 
-            'gemini-flash-latest',
-            'gemini-3-flash-preview'
+            'gemini-1.5-flash'
         ]
         
         for model_name in models_to_try:
@@ -176,12 +187,26 @@ def calculate_match_score(user1, user2, force_ai=False):
             raise Exception("All Gemini models failed (likely due to quota or region).")
 
         text = response.text.strip()
+        
+        # Robust JSON extraction
         if "```json" in text:
             text = text.split("```json")[1].split("```")[0].strip()
         elif "```" in text:
             text = text.split("```")[1].split("```")[0].strip()
-            
-        result = json.loads(text)
+
+        # Sanitize control characters that break JSON (like raw line breaks inside strings)
+        # We replace actual newlines with the literal \n string if they are likely inside a JSON value
+        sanitized_text = ""
+        in_string = False
+        for char in text:
+            if char == '"':
+                in_string = not in_string
+            if in_string and char == '\n':
+                sanitized_text += "\\n"
+            elif ord(char) >= 32 or char in "\n\r\t": # Keep printable and standard whitespace
+                sanitized_text += char
+        
+        result = json.loads(sanitized_text)
         
         # Save to DB cache
         final_result = {

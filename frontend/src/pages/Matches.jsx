@@ -191,9 +191,11 @@ function Matches() {
                   <p className="mb-2" style={{color:'var(--text-muted)', fontSize:'0.75rem', textTransform:'uppercase', letterSpacing:'0.05em', fontWeight:600}}>
                     {match.isAI ? "AI Insights:" : "Compatibility:"}
                   </p>
-                  <p className="small text-white opacity-75 mb-0" style={{fontStyle: 'italic', fontSize: '0.85rem', whiteSpace: 'pre-line'}}>
-                    "{match.matchReason}"
-                  </p>
+                  <div style={{ maxHeight: '120px', overflowY: 'auto', paddingRight: '5px' }} className="custom-scrollbar">
+                    <p className="small text-white opacity-75 mb-0" style={{fontStyle: 'italic', fontSize: '0.85rem', whiteSpace: 'pre-line'}}>
+                      "{match.matchReason}"
+                    </p>
+                  </div>
                 </div>
 
                 <div className="mb-4">
@@ -206,50 +208,52 @@ function Matches() {
                   </div>
                 </div>
 
-                {!match.isAI && (
-                  <button 
-                    onClick={() => handleConsultAI(match.id)}
-                    disabled={aiLoading[match.id]}
-                    className="btn w-100 mb-2 d-flex align-items-center justify-content-center gap-2"
-                    style={{
-                      background: 'rgba(13, 202, 240, 0.1)',
-                      border: '1px solid rgba(13, 202, 240, 0.2)',
-                      color: '#0dcaf0',
-                      fontSize: '0.8rem',
-                      padding: '8px',
-                      borderRadius: '8px'
-                    }}
-                  >
-                    {aiLoading[match.id] ? (
-                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0M7 11.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5m.5-4a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0m1.5-3a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3M5 7a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m.5 4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5"/>
-                      </svg>
-                    )}
-                    {aiLoading[match.id] ? 'Analyzing...' : 'Consult StackMate AI'}
-                  </button>
-                )}
+                <div className="mt-auto">
+                  {!match.isAI && (
+                    <button 
+                      onClick={() => handleConsultAI(match.id)}
+                      disabled={aiLoading[match.id]}
+                      className="btn w-100 mb-2 d-flex align-items-center justify-content-center gap-2"
+                      style={{
+                        background: 'rgba(13, 202, 240, 0.1)',
+                        border: '1px solid rgba(13, 202, 240, 0.2)',
+                        color: '#0dcaf0',
+                        fontSize: '0.8rem',
+                        padding: '8px',
+                        borderRadius: '8px'
+                      }}
+                    >
+                      {aiLoading[match.id] ? (
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0M7 11.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5m.5-4a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0m1.5-3a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3M5 7a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m.5 4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5"/>
+                        </svg>
+                      )}
+                      {aiLoading[match.id] ? 'Analyzing...' : 'Consult StackMate AI'}
+                    </button>
+                  )}
 
-                {match.connectionStatus === 'accepted' ? (
-                  match.isBlockedByMe || match.hasBlockedMe ? (
-                    <button className="btn fw-bold mt-auto w-100 disabled" style={{background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.3)', border:'1px solid var(--border-subtle)'}}>
-                      Chat Unavailable
+                  {match.connectionStatus === 'accepted' ? (
+                    match.isBlockedByMe || match.hasBlockedMe ? (
+                      <button className="btn fw-bold w-100 disabled" style={{background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.3)', border:'1px solid var(--border-subtle)'}}>
+                        Chat Unavailable
+                      </button>
+                    ) : (
+                      <Link to="/chat" state={{ peer: match }} className="btn fw-bold w-100" style={{background:'rgba(25,135,84,0.2)', color:'#75d9a3', border:'1px solid rgba(25,135,84,0.3)'}}>
+                        Open Chat
+                      </Link>
+                    )
+                  ) : match.connectionStatus === 'pending' ? (
+                    <button className="btn fw-bold w-100 disabled" style={{background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.3)', border:'1px solid var(--border-subtle)'}}>
+                      Request Sent
                     </button>
                   ) : (
-                    <Link to="/chat" state={{ peer: match }} className="btn fw-bold mt-auto w-100" style={{background:'rgba(25,135,84,0.2)', color:'#75d9a3', border:'1px solid rgba(25,135,84,0.3)'}}>
-                      Open Chat
-                    </Link>
-                  )
-                ) : match.connectionStatus === 'pending' ? (
-                  <button className="btn fw-bold mt-auto w-100 disabled" style={{background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.3)', border:'1px solid var(--border-subtle)'}}>
-                    Request Sent
-                  </button>
-                ) : (
-                  <button onClick={() => handleSendRequest(match.id)} className="btn fw-bold mt-auto w-100" style={{background:'var(--accent-orange)', color:'#000'}}>
-                    Send Match Request
-                  </button>
-                )}
+                    <button onClick={() => handleSendRequest(match.id)} className="btn fw-bold w-100" style={{background:'var(--accent-orange)', color:'#000'}}>
+                      Send Match Request
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
