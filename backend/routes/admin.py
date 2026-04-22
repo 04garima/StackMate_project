@@ -26,10 +26,15 @@ def search_colleges(current_user):
     
     result = []
     for c in colleges:
+        # Robust name fetching: try 'name', then 'college_name', then fallback to domain part or domain itself
+        college_name = c.get("name") or c.get("college_name")
+        if not college_name and c.get("domain"):
+            college_name = c.get("domain").split('.')[0].capitalize()
+            
         result.append({
             "id": str(c["_id"]),
-            "name": c["name"],
-            "domain": c["domain"],
+            "name": college_name or "Unnamed College",
+            "domain": c.get("domain", "No Domain"),
             "status": c.get("status", "pending")
         })
         

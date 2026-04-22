@@ -61,7 +61,7 @@ function AdminColleges() {
   return (
     <div className="fade-in">
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <h1 className="fw-bold mb-0" style={{color:'#fff'}}>Manage Colleges</h1>
+        <h1 className="fw-bold mb-0" style={{color:'#f5e7e7'}}>Manage Colleges</h1>
         <input
           type="text"
           placeholder="Search colleges..."
@@ -88,8 +88,12 @@ function AdminColleges() {
               <tr key={college.id} style={{borderBottom:'1px solid var(--border-subtle)', transition:'background 0.2s'}}
                 onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.02)'}
                 onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                <td className="py-3 px-4 fw-bold" style={{color:'#ffffff', border:'none', fontSize: '0.95rem'}}>
-                  {college.name || <span className="text-muted italic">Unnamed College</span>}
+                <td className="py-3 px-4 fw-bold" style={{color:'#635d5d', border:'none', fontSize: '0.95rem'}}>
+                  {college.name && college.name !== "Unnamed College" ? college.name : (
+                    <span className="text-secondary opacity-50 fst-italic">
+                      {college.domain ? college.domain.split('.')[0].toUpperCase() : "Unknown"}
+                    </span>
+                  )}
                 </td>
                 <td className="py-3 px-4" style={{color:'var(--accent-orange)', border:'none'}}>{college.domain}</td>
                 <td className="py-3 px-4" style={{border:'none'}}>{statusBadge(college.status)}</td>

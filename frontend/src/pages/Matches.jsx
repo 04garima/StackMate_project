@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 function Matches() {
+  const location = useLocation();
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,6 +39,30 @@ function Matches() {
     } catch (err) {
       console.error(err);
       alert('Failed to send request');
+    }
+  };
+
+  const [aiLoading, setAiLoading] = useState({});
+
+  const handleConsultAI = async (peerId) => {
+    try {
+      setAiLoading(prev => ({ ...prev, [peerId]: true }));
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`http://127.0.0.1:5000/api/match/ai-score/${peerId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setMatches(prev => prev.map(m => m.id === peerId ? { 
+        ...m, 
+        matchScore: res.data.score, 
+        matchReason: res.data.reason,
+        isAI: res.data.is_ai
+      } : m));
+    } catch (err) {
+      console.error(err);
+      alert('AI Analysis failed.');
+    } finally {
+      setAiLoading(prev => ({ ...prev, [peerId]: false }));
     }
   };
 
@@ -112,10 +137,21 @@ function Matches() {
       ) : (
         <div className="row g-4">
           {filteredMatches.map((match) => (
-            <div key={match.id} className="col-12 col-md-6 col-lg-4">
-              <div className="rounded-3 p-4 h-100 d-flex flex-column" style={{background:'var(--bg-card)', border:'1px solid var(--border-subtle)', transition:'border-color 0.3s'}}
+            <div 
+              key={match.id} 
+              id={`peer-${match.id}`}
+              className="col-12 col-md-6 col-lg-4"
+              style={location.state?.scrollTo === match.id ? { transform: 'scale(1.02)', transition: 'all 0.5s ease' } : {}}
+            >
+              <div 
+                className="rounded-3 p-4 h-100 d-flex flex-column" 
+                style={{
+                  background:'var(--bg-card)', 
+                  border: location.state?.scrollTo === match.id ? '2px solid var(--accent-orange)' : '1px solid var(--border-subtle)', 
+                  transition:'border-color 0.3s'
+                }}
                 onMouseEnter={e => e.currentTarget.style.borderColor='rgba(255,171,0,0.3)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor='var(--border-subtle)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor=location.state?.scrollTo === match.id ? 'var(--accent-orange)' : 'var(--border-subtle)'}
               >
                 <div className="d-flex align-items-center gap-3 mb-3">
                   <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold"
@@ -123,12 +159,21 @@ function Matches() {
                     {match.name.charAt(0)}
                   </div>
                   <div className="flex-grow-1">
-                    <div className="d-flex justify-content-between">
-                      <h6 className="mb-0 fw-bold" style={{color:'#fff'}}>{match.name}</h6>
-                      {match.connectionStatus === 'accepted' && <span className="badge bg-success bg-opacity-10 text-success small">Connected</span>}
-                      {match.connectionStatus === 'pending' && <span className="badge bg-warning bg-opacity-10 text-warning small">Pending</span>}
+                    <div className="d-flex justify-content-between align-items-start">
+                      <div>
+                        <h6 className="mb-0 fw-bold" style={{color:'#fff'}}>{match.name}</h6>
+                        <small style={{color:'var(--text-muted)', textTransform:'capitalize'}}>{match.role}</small>
+                      </div>
+                      <div className="text-end">
+                        <div className={`badge ${match.matchScore >= 80 ? 'bg-success' : match.matchScore >= 50 ? 'bg-warning' : 'bg-secondary'} bg-opacity-10 text-${match.matchScore >= 80 ? 'success' : match.matchScore >= 50 ? 'warning' : 'secondary'} border border-${match.matchScore >= 80 ? 'success' : match.matchScore >= 50 ? 'warning' : 'secondary'} border-opacity-25`} style={{fontSize: '0.7rem'}}>
+                          {match.matchScore}% Match
+                        </div>
+                      </div>
                     </div>
-                    <small style={{color:'var(--text-muted)', textTransform:'capitalize'}}>{match.role}</small>
+                    <div className="mt-1">
+                      {match.connectionStatus === 'accepted' && <span className="badge bg-success bg-opacity-10 text-success me-1" style={{fontSize: '0.65rem'}}>Connected</span>}
+                      {match.connectionStatus === 'pending' && <span className="badge bg-warning bg-opacity-10 text-warning me-1" style={{fontSize: '0.65rem'}}>Pending Request</span>}
+                    </div>
                   </div>
                 </div>
 
@@ -142,6 +187,15 @@ function Matches() {
                   </div>
                 </div>
 
+                <div className="mb-3">
+                  <p className="mb-2" style={{color:'var(--text-muted)', fontSize:'0.75rem', textTransform:'uppercase', letterSpacing:'0.05em', fontWeight:600}}>
+                    {match.isAI ? "AI Insights:" : "Compatibility:"}
+                  </p>
+                  <p className="small text-white opacity-75 mb-0" style={{fontStyle: 'italic', fontSize: '0.85rem', whiteSpace: 'pre-line'}}>
+                    "{match.matchReason}"
+                  </p>
+                </div>
+
                 <div className="mb-4">
                   <p className="mb-2" style={{color:'var(--text-muted)', fontSize:'0.75rem', textTransform:'uppercase', letterSpacing:'0.05em', fontWeight:600}}>You can teach them:</p>
                   <div className="d-flex flex-wrap gap-1">
@@ -152,10 +206,41 @@ function Matches() {
                   </div>
                 </div>
 
+                {!match.isAI && (
+                  <button 
+                    onClick={() => handleConsultAI(match.id)}
+                    disabled={aiLoading[match.id]}
+                    className="btn w-100 mb-2 d-flex align-items-center justify-content-center gap-2"
+                    style={{
+                      background: 'rgba(13, 202, 240, 0.1)',
+                      border: '1px solid rgba(13, 202, 240, 0.2)',
+                      color: '#0dcaf0',
+                      fontSize: '0.8rem',
+                      padding: '8px',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    {aiLoading[match.id] ? (
+                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0M7 11.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5m.5-4a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0m1.5-3a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3M5 7a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m.5 4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5"/>
+                      </svg>
+                    )}
+                    {aiLoading[match.id] ? 'Analyzing...' : 'Consult StackMate AI'}
+                  </button>
+                )}
+
                 {match.connectionStatus === 'accepted' ? (
-                  <Link to="/chat" state={{ peer: match }} className="btn fw-bold mt-auto w-100" style={{background:'rgba(25,135,84,0.2)', color:'#75d9a3', border:'1px solid rgba(25,135,84,0.3)'}}>
-                    Open Chat
-                  </Link>
+                  match.isBlockedByMe || match.hasBlockedMe ? (
+                    <button className="btn fw-bold mt-auto w-100 disabled" style={{background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.3)', border:'1px solid var(--border-subtle)'}}>
+                      Chat Unavailable
+                    </button>
+                  ) : (
+                    <Link to="/chat" state={{ peer: match }} className="btn fw-bold mt-auto w-100" style={{background:'rgba(25,135,84,0.2)', color:'#75d9a3', border:'1px solid rgba(25,135,84,0.3)'}}>
+                      Open Chat
+                    </Link>
+                  )
                 ) : match.connectionStatus === 'pending' ? (
                   <button className="btn fw-bold mt-auto w-100 disabled" style={{background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.3)', border:'1px solid var(--border-subtle)'}}>
                     Request Sent

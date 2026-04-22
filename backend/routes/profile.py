@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from utils.auth import token_required
 from config.db import get_db
+import datetime
 
 profile_bp = Blueprint('profile', __name__)
 
@@ -38,5 +39,26 @@ def update_skills(current_user):
             "skillsWanted": skills_wanted
         }}
     )
+
+    # Update Global Skill Database
+    all_new_skills = set(skills_offered + skills_wanted)
+    for skill in all_new_skills:
+        skill_name = skill.strip()
+        if not skill_name: continue
+        
+        normalized_name = skill_name.lower()
+        db.skills.update_one(
+            {"name_lower": normalized_name},
+            {
+                "$set": {
+                    "name": skill_name, 
+                    "name_lower": normalized_name,
+                    "category": "Community",
+                    "lastUsed": datetime.datetime.utcnow()
+                }, 
+                "$inc": {"usage_count": 1}
+            },
+            upsert=True
+        )
     
-    return jsonify({"message": "Skills updated successfully"}), 200
+    return jsonify({"message": "Skills updated successfully and registered in Global Database"}), 200

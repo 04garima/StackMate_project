@@ -127,16 +127,26 @@ function Connections() {
                     </div>
                     <div>
                       <h6 className="fw-bold mb-0 text-white">{match.peer.name}</h6>
-                      <p className="mb-0 small text-muted">{match.peer.role}</p>
+                      <p className="mb-0 small text-muted">
+                        {match.isBlockedByMe ? <span className="text-danger">Blocked</span> : 
+                         match.hasBlockedMe ? <span className="text-warning">Unavailable</span> : 
+                         match.peer.role}
+                      </p>
                     </div>
                   </div>
                   <p className="small text-muted mb-4" style={{ display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {match.peer.bio || "No bio available."}
                   </p>
                   <div className="d-grid">
-                    <Link to="/chat" className="btn fw-bold" style={{ background: 'rgba(255,171,0,0.1)', color: 'var(--accent-orange)', border: '1px solid rgba(255,171,0,0.3)' }}>
-                      Open Chat
-                    </Link>
+                    {match.isBlockedByMe || match.hasBlockedMe ? (
+                      <button className="btn fw-bold disabled" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)', border: '1px solid var(--border-subtle)' }}>
+                        Chat Disabled
+                      </button>
+                    ) : (
+                      <Link to="/chat" state={{ peer: match.peer }} className="btn fw-bold" style={{ background: 'rgba(255,171,0,0.1)', color: 'var(--accent-orange)', border: '1px solid rgba(255,171,0,0.3)' }}>
+                        Open Chat
+                      </Link>
+                    )}
                   </div>
                 </div>
                 <div className="card-footer border-0 py-2 px-4" style={{ background: 'rgba(255,255,255,0.02)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>

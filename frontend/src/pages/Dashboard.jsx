@@ -26,7 +26,7 @@ function Dashboard() {
         const token = localStorage.getItem('token');
         const [profileRes, matchesRes] = await Promise.all([
           axios.get('http://127.0.0.1:5000/api/profile/me', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://127.0.0.1:5000/api/match', { headers: { Authorization: `Bearer ${token}` } })
+          axios.get('http://127.0.0.1:5000/api/match?type=all', { headers: { Authorization: `Bearer ${token}` } })
         ]);
         
         setProfile(profileRes.data);
@@ -56,7 +56,7 @@ function Dashboard() {
       setMessageType('success');
       
       // Refresh matches after skill update
-      const matchesRes = await axios.get('http://127.0.0.1:5000/api/match', {
+      const matchesRes = await axios.get('http://127.0.0.1:5000/api/match?type=all', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMatches(matchesRes.data);
@@ -68,6 +68,42 @@ function Dashboard() {
     }
   };
 
+  const [aiLoading, setAiLoading] = useState({});
+
+  const handleConsultAI = async (peerId) => {
+    try {
+      setAiLoading(prev => ({ ...prev, [peerId]: true }));
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`http://127.0.0.1:5000/api/match/ai-score/${peerId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setMatches(prev => prev.map(m => m.id === peerId ? { 
+        ...m, 
+        matchScore: res.data.score, 
+        matchReason: res.data.reason,
+        isAI: res.data.is_ai
+      } : m));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAiLoading(prev => ({ ...prev, [peerId]: false }));
+    }
+  };
+
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const handleBulkAnalyze = async () => {
+    setBulkLoading(true);
+    const topPeers = matches.slice(0, 3).filter(m => !m.isAI);
+    
+    for (const peer of topPeers) {
+      await handleConsultAI(peer.id);
+      // Wait a bit between calls to avoid 429
+      await new Promise(r => setTimeout(r, 2000));
+    }
+    setBulkLoading(false);
+  };
+
   if (!profile) return (
     <div className="d-flex justify-content-center align-items-center" style={{minHeight: '200px'}}>
       <div className="spinner-border text-warning" role="status"/>
@@ -76,12 +112,6 @@ function Dashboard() {
 
   return (
     <div className="fade-in">
-      {!profile.college_id && (
-        <div className="alert alert-warning border-0 mb-4" style={{background: 'rgba(255,193,7,0.1)', color: '#ffca2c'}}>
-          <h5 className="alert-heading fw-bold fs-6">College Not Verified</h5>
-          <p className="mb-0 small">Your account is not associated with a registered college. You won't be able to see matches until your college is added and approved by an administrator.</p>
-        </div>
-      )}
 
       <div className="row g-4">
         <div className="col-lg-7">
@@ -120,12 +150,24 @@ function Dashboard() {
 
         <div className="col-lg-5">
           <div className="rounded-3 p-4 h-100" style={{background: 'var(--bg-card)', border: '1px solid var(--border-subtle)'}}>
-            <h3 className="fs-5 fw-bold mb-4 text-white d-flex align-items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{width: '20px', height: '20px', color: 'var(--accent-orange)'}}>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Recent Matches
-            </h3>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h3 className="fs-5 fw-bold text-white d-flex align-items-center gap-2 mb-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{width: '20px', height: '20px', color: 'var(--accent-orange)'}}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                AI Top Picks
+              </h3>
+              {matches.length > 0 && (
+                <button 
+                  onClick={handleBulkAnalyze} 
+                  disabled={bulkLoading}
+                  className="btn btn-sm p-0 border-0 text-orange fw-bold"
+                  style={{ color: 'var(--accent-orange)', fontSize: '0.7rem', textDecoration: 'underline' }}
+                >
+                  {bulkLoading ? 'Analyzing...' : 'Refresh Picks'}
+                </button>
+              )}
+            </div>
             
             <div className="d-flex flex-column gap-3">
               {matches.length === 0 ? (
@@ -133,18 +175,25 @@ function Dashboard() {
                   <p className="text-muted mb-0">No matches found yet.</p>
                   <p className="text-muted small">Update your skills to see potential partners!</p>
                 </div>
-              ) : matches.slice(0, 5).map((match, i) => (
-                <div key={i} className="p-3 rounded-3" style={{background: 'rgba(255,255,255,0.02)', border: '1px solid #2a2a30'}}>
-                  <div className="d-flex justify-content-between align-items-start mb-2">
-                    <span className="fw-bold text-white" style={{fontSize: '0.9rem'}}>{match.name}</span>
-                    <span className="badge rounded-pill bg-success bg-opacity-10 text-success border-0" style={{fontSize: '0.65rem'}}>Match</span>
-                  </div>
-                  <p className="mb-2 text-secondary text-truncate" style={{fontSize: '0.8rem'}}>{match.bio || "No bio provided"}</p>
-                  <div className="d-flex flex-wrap gap-1">
-                    {match.theyCanTeach.slice(0, 2).map((skill, idx) => (
-                      <span key={idx} className="badge bg-secondary bg-opacity-10 text-secondary border-0" style={{fontSize: '0.65rem'}}>{skill}</span>
-                    ))}
-                    {match.theyCanTeach.length > 2 && <span className="text-muted small">+{match.theyCanTeach.length - 2} more</span>}
+              ) : matches.slice(0, 3).map((match, i) => (
+                <div 
+                  key={i} 
+                  onClick={() => navigate('/matches', { state: { scrollTo: match.id } })}
+                  className="p-2 px-3 rounded-3 mb-2" 
+                  style={{background: 'rgba(255,255,255,0.02)', border: '1px solid #2a2a30', cursor: 'pointer'}}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+                >
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <span className="fw-bold text-white d-block" style={{fontSize: '0.85rem'}}>{match.name}</span>
+                      <small className="text-white opacity-50" style={{fontSize: '0.7rem', display: 'block', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
+                        {match.matchReason.split('\n')[0].replace('🚀 SYNERGY: ', '').replace('🔥 Why this is cool: ', '')}
+                      </small>
+                    </div>
+                    <div className="text-end">
+                      <div className={`badge rounded-pill ${match.matchScore >= 80 ? 'bg-success' : 'bg-warning'} bg-opacity-10 text-${match.matchScore >= 80 ? 'success' : 'warning'} border-0 mb-1`} style={{fontSize: '0.6rem'}}>{match.matchScore}%</div>
+                    </div>
                   </div>
                 </div>
               ))}

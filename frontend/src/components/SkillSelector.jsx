@@ -103,14 +103,16 @@ function SkillSelector({ label, value, onChange, placeholder }) {
               <div className="py-1">
                 {filteredSkills.length > 0 ? filteredSkills.map(skill => (
                   <div 
-                    key={skill._id}
+                    key={skill._id || skill.name}
                     className="px-3 py-2"
                     style={{cursor: 'pointer', color: '#d1d5db', fontSize: '0.9rem'}}
                     onClick={() => handleAddSkill(skill.name)}
                     onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#fff'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#d1d5db'; }}
                   >
-                    {skill.name} <span className="text-muted ms-2" style={{fontSize: '0.75rem'}}>({skill.category})</span>
+                    {skill.name} {skill.category && (
+                      <span className="text-muted ms-2" style={{fontSize: '0.75rem'}}>({skill.category})</span>
+                    )}
                   </div>
                 )) : (
                   <div 

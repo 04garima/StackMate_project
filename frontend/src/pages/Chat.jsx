@@ -12,6 +12,9 @@ function Chat() {
   const [newMessage, setNewMessage] = useState('');
   const [loadingContacts, setLoadingContacts] = useState(true);
   const [loadingChat, setLoadingChat] = useState(false);
+  const [isBlockedByMe, setIsBlockedByMe] = useState(false);
+  const [hasBlockedMe, setHasBlockedMe] = useState(false);
+  const [blockingAction, setBlockingAction] = useState(false);
   
   const messagesEndRef = useRef(null);
 
@@ -49,7 +52,9 @@ function Chat() {
       const res = await axios.get(`http://127.0.0.1:5000/api/chat/history/${contactId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setMessages(res.data);
+      setMessages(res.data.messages);
+      setIsBlockedByMe(res.data.isBlockedByMe);
+      setHasBlockedMe(res.data.hasBlockedMe);
     } catch (err) {
       console.error(err);
     }
@@ -106,6 +111,43 @@ function Chat() {
     }
   };
 
+  const handleBlockUser = async () => {
+    if (!selectedContact || !window.confirm(`Are you sure you want to block ${selectedContact.name}?`)) return;
+    setBlockingAction(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('http://127.0.0.1:5000/api/chat/block', {
+        targetUserId: selectedContact.id
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsBlockedByMe(true);
+      // Refresh contacts to update status if needed
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to block user");
+    } finally {
+      setBlockingAction(false);
+    }
+  };
+
+  const handleUnblockUser = async () => {
+    if (!selectedContact) return;
+    setBlockingAction(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('http://127.0.0.1:5000/api/chat/unblock', {
+        targetUserId: selectedContact.id
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsBlockedByMe(false);
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to unblock user");
+    } finally {
+      setBlockingAction(false);
+    }
+  };
+
   return (
     <div className="fade-in d-flex flex-column h-100" style={{maxHeight: 'calc(100vh - 100px)'}}>
       <h1 className="fw-bold mb-1" style={{color: 'var(--accent-orange)'}}>Messages</h1>
@@ -141,9 +183,11 @@ function Chat() {
                     </div>
                     <div className="overflow-hidden">
                       <h6 className="mb-0 text-white text-truncate" style={{fontSize: '0.95rem'}}>{contact.name}</h6>
-                      {contact.youCanTeach?.length > 0 && 
-                        <small className="text-muted d-block text-truncate" style={{fontSize: '0.75rem'}}>Matches based on {contact.youCanTeach[0]}</small>
-                      }
+                      <small className="text-muted d-block text-truncate" style={{fontSize: '0.75rem'}}>
+                        {contact.isBlockedByMe ? <span className="text-danger">Blocked by you</span> : 
+                         contact.hasBlockedMe ? <span className="text-warning">Unavailable</span> : 
+                         (contact.youCanTeach?.length > 0 ? `Matches based on ${contact.youCanTeach[0]}` : "StackMate Match")}
+                      </small>
                     </div>
                   </div>
                 );
@@ -164,7 +208,30 @@ function Chat() {
                  </div>
                  <div>
                     <h5 className="mb-0 text-white">{selectedContact.name}</h5>
-                    <small className="text-muted">StackMate Match</small>
+                    <small className="text-muted">
+                      {isBlockedByMe ? <span className="text-danger">Blocked by you</span> : 
+                       hasBlockedMe ? <span className="text-warning">Has blocked you</span> : 
+                       "StackMate Match"}
+                    </small>
+                 </div>
+                 <div className="ms-auto">
+                    {isBlockedByMe ? (
+                      <button 
+                        className="btn btn-sm btn-outline-warning fw-bold" 
+                        onClick={handleUnblockUser}
+                        disabled={blockingAction}
+                      >
+                        {blockingAction ? "Processing..." : "Unblock User"}
+                      </button>
+                    ) : (
+                      <button 
+                        className="btn btn-sm btn-outline-danger fw-bold" 
+                        onClick={handleBlockUser}
+                        disabled={blockingAction || hasBlockedMe}
+                      >
+                        {blockingAction ? "Processing..." : "Block User"}
+                      </button>
+                    )}
                  </div>
               </div>
 
@@ -175,7 +242,9 @@ function Chat() {
                 ) : messages.length === 0 ? (
                    <div className="mt-auto mb-auto text-center">
                       <div className="text-muted mb-2">No messages yet.</div>
-                      <div className="text-muted" style={{fontSize: '0.85rem'}}>Say hello and coordinate your skill exchange!</div>
+                      <div className="text-muted" style={{fontSize: '0.85rem'}}>
+                        {isBlockedByMe || hasBlockedMe ? "Messaging is disabled." : "Say hello and coordinate your skill exchange!"}
+                      </div>
                    </div>
                 ) : (
                   messages.map(msg => {
@@ -202,19 +271,29 @@ function Chat() {
 
               {/* Chat Input form */}
               <div className="p-3 border-top" style={{borderColor: 'var(--border-subtle) !important', background: '#19191d'}}>
-                 <form onSubmit={handleSendMessage} className="d-flex gap-2">
-                   <input 
-                     type="text" 
-                     className="form-control text-white border-0 shadow-none" 
-                     style={{backgroundColor: '#2a2a30'}} 
-                     placeholder="Type your message..." 
-                     value={newMessage}
-                     onChange={(e) => setNewMessage(e.target.value)}
-                   />
-                   <button type="submit" className="btn fw-bold px-4 flex-shrink-0" style={{backgroundColor: 'var(--accent-orange)', color: '#000'}} disabled={!newMessage.trim()}>
-                     Send
-                   </button>
-                 </form>
+                 {isBlockedByMe ? (
+                   <div className="text-center py-2 text-danger fw-bold" style={{fontSize: '0.9rem'}}>
+                     You have blocked this user. Unblock them to send messages.
+                   </div>
+                 ) : hasBlockedMe ? (
+                   <div className="text-center py-2 text-warning fw-bold" style={{fontSize: '0.9rem'}}>
+                     This user has blocked you. You cannot send messages.
+                   </div>
+                 ) : (
+                   <form onSubmit={handleSendMessage} className="d-flex gap-2">
+                     <input 
+                       type="text" 
+                       className="form-control text-white border-0 shadow-none" 
+                       style={{backgroundColor: '#2a2a30'}} 
+                       placeholder="Type your message..." 
+                       value={newMessage}
+                       onChange={(e) => setNewMessage(e.target.value)}
+                     />
+                     <button type="submit" className="btn fw-bold px-4 flex-shrink-0" style={{backgroundColor: 'var(--accent-orange)', color: '#000'}} disabled={!newMessage.trim()}>
+                       Send
+                     </button>
+                   </form>
+                 )}
               </div>
             </>
           ) : (

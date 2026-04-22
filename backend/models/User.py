@@ -33,6 +33,7 @@ class UserModel:
             "skillsOffered": [],
             "skillsWanted": [],
             "bio": "",
+            "blockedUsers": [],
             "createdAt": datetime.datetime.utcnow()
         }
         
